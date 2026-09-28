@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>📋 TaskFlow</h1>
+    <p>Gestionnaire de tâches collaboratif</p>
+  </header>
+
+  <main>
+    <section class="task-form">
+      <h2>Nouvelle tâche</h2>
+      <form id="task-form">
+        <div class="form-group">
+          <label for="title">Titre</label>
+          <input type="text" id="title" name="title" placeholder="Titre de la tâche" required>
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" placeholder="Description (optionnel)" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="owner">Responsable</label>
+          <input type="text" id="owner" name="owner" placeholder="Votre nom">
+        </div>
+        <button type="submit">Ajouter</button>
+      </form>
+    </section>
+
+    <section class="task-filters">
+      <h2>Filtres</h2>
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-status="">Toutes</button>
+        <button class="filter-btn" data-status="todo">À faire</button>
+        <button class="filter-btn" data-status="in-progress">En cours</button>
+        <button class="filter-btn" data-status="done">Terminées</button>
+      </div>
+    </section>
+
+    <section class="task-list">
+      <h2>Tâches</h2>
+      <div id="tasks-container">
+        <!-- Les tâches sont chargées dynamiquement -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 TaskFlow — Projet CDA</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
