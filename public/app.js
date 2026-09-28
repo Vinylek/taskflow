@@ -1,6 +1,7 @@
 // ──────────────────────────────────────────────
 // TaskFlow — Front-end JavaScript
 // ──────────────────────────────────────────────
+/* exported advanceStatus, deleteTask */ // appelées via onclick dans le HTML généré
 
 const tasksContainer = document.getElementById('tasks-container');
 const taskForm = document.getElementById('task-form');
@@ -36,7 +37,9 @@ function renderTasks(tasks) {
     return;
   }
 
-  tasksContainer.innerHTML = tasks.map(task => `
+  tasksContainer.innerHTML = tasks
+    .map(
+      (task) => `
     <div class="task-card" data-status="${task.status}">
       <h3>${task.title}</h3>
       <p>${task.description || 'Pas de description'}</p>
@@ -49,14 +52,16 @@ function renderTasks(tasks) {
         <button class="delete-btn" onclick="deleteTask('${task.id}')">🗑 Supprimer</button>
       </div>
     </div>
-  `).join('');
+  `,
+    )
+    .join('');
 }
 
 function formatStatus(status) {
   const labels = {
-    'todo': 'À faire',
+    todo: 'À faire',
     'in-progress': 'En cours',
-    'done': 'Terminée'
+    done: 'Terminée',
   };
   return labels[status] || status;
 }
@@ -124,9 +129,9 @@ async function deleteTask(id) {
 
 // ── Filtres ────────────────────────────────────
 
-filterButtons.forEach(btn => {
+filterButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
-    filterButtons.forEach(b => b.classList.remove('active'));
+    filterButtons.forEach((b) => b.classList.remove('active'));
     btn.classList.add('active');
     currentFilter = btn.dataset.status;
     loadTasks();

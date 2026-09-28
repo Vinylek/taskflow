@@ -12,14 +12,19 @@ body {
 }
 
 header {
-  background: #2E74B5;
+  background: #2e74b5;
   color: white;
   padding: 1.5rem;
   text-align: center;
 }
 
-header h1 { font-size: 1.8rem; }
-header p { opacity: 0.8; margin-top: 0.3rem; }
+header h1 {
+  font-size: 1.8rem;
+}
+header p {
+  opacity: 0.8;
+  margin-top: 0.3rem;
+}
 
 main {
   max-width: 900px;
@@ -33,11 +38,11 @@ main {
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .task-form h2 {
-  color: #2E74B5;
+  color: #2e74b5;
   margin-bottom: 1rem;
 }
 
@@ -64,12 +69,12 @@ main {
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #2E74B5;
+  border-color: #2e74b5;
   box-shadow: 0 0 0 3px rgba(46, 116, 181, 0.15);
 }
 
-button[type="submit"] {
-  background: #2E74B5;
+button[type='submit'] {
+  background: #2e74b5;
   color: white;
   border: none;
   padding: 0.6rem 1.5rem;
@@ -78,8 +83,8 @@ button[type="submit"] {
   cursor: pointer;
 }
 
-button[type="submit"]:hover {
-  background: #1F4E79;
+button[type='submit']:hover {
+  background: #1f4e79;
 }
 
 /* ── Filtres ────────────────────────────────── */
@@ -88,7 +93,7 @@ button[type="submit"]:hover {
 }
 
 .task-filters h2 {
-  color: #2E74B5;
+  color: #2e74b5;
   margin-bottom: 0.5rem;
 }
 
@@ -108,9 +113,9 @@ button[type="submit"]:hover {
 }
 
 .filter-btn.active {
-  background: #2E74B5;
+  background: #2e74b5;
   color: white;
-  border-color: #2E74B5;
+  border-color: #2e74b5;
 }
 
 .filter-btn:hover:not(.active) {
@@ -140,14 +145,20 @@ button[type="submit"]:hover {
   background: white;
   border-radius: 8px;
   padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border-left: 4px solid #ddd;
   position: relative;
 }
 
-.task-card[data-status="todo"] { border-left-color: #E74C3C; }
-.task-card[data-status="in-progress"] { border-left-color: #F39C12; }
-.task-card[data-status="done"] { border-left-color: #27AE60; }
+.task-card[data-status='todo'] {
+  border-left-color: #e74c3c;
+}
+.task-card[data-status='in-progress'] {
+  border-left-color: #f39c12;
+}
+.task-card[data-status='done'] {
+  border-left-color: #27ae60;
+}
 
 .task-card h3 {
   font-size: 1rem;
@@ -177,9 +188,18 @@ button[type="submit"]:hover {
   font-weight: 600;
 }
 
-.task-status.todo { background: #FDEDEC; color: #E74C3C; }
-.task-status.in-progress { background: #FEF5E7; color: #F39C12; }
-.task-status.done { background: #EAFAF1; color: #27AE60; }
+.task-status.todo {
+  background: #fdedec;
+  color: #e74c3c;
+}
+.task-status.in-progress {
+  background: #fef5e7;
+  color: #f39c12;
+}
+.task-status.done {
+  background: #eafaf1;
+  color: #27ae60;
+}
 
 .task-card .task-actions {
   display: flex;
@@ -201,9 +221,9 @@ button[type="submit"]:hover {
 }
 
 .task-card .task-actions .delete-btn:hover {
-  background: #FDEDEC;
-  border-color: #E74C3C;
-  color: #E74C3C;
+  background: #fdedec;
+  border-color: #e74c3c;
+  color: #e74c3c;
 }
 
 /* ── Footer ─────────────────────────────────── */
@@ -216,8 +236,8 @@ footer {
 
 /* ── Message d'erreur ───────────────────────── */
 .error-message {
-  background: #FDEDEC;
-  color: #E74C3C;
+  background: #fdedec;
+  color: #e74c3c;
   padding: 0.75rem;
   border-radius: 4px;
   margin-bottom: 1rem;
