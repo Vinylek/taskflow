@@ -11,6 +11,8 @@ Gestionnaire de tâches collaboratif — API REST Express + front-end vanilla JS
 
 - [Prérequis](#prérequis)
 - [Démarrage rapide](#démarrage-rapide)
+  - [Option A — Dev container (recommandé)](#option-a--dev-container-recommandé)
+  - [Option B — Installation locale](#option-b--installation-locale)
 - [Configuration](#configuration)
 - [Infrastructure (Docker Compose)](#infrastructure-docker-compose)
 - [Scripts npm](#scripts-npm)
@@ -21,6 +23,10 @@ Gestionnaire de tâches collaboratif — API REST Express + front-end vanilla JS
 - [Dépannage](#dépannage)
 
 ## Prérequis
+
+**Avec le dev container** (option A) : uniquement [Docker](https://docs.docker.com/get-docker/) et [VS Code](https://code.visualstudio.com/) avec l'extension [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers). Node, npm, gh et les extensions sont fournis par le conteneur.
+
+**En installation locale** (option B) :
 
 | Outil                                             | Version | Vérification             |
 | ------------------------------------------------- | ------- | ------------------------ |
@@ -33,6 +39,41 @@ Gestionnaire de tâches collaboratif — API REST Express + front-end vanilla JS
 La version de Node est figée dans `.nvmrc` ; `npm install` échoue volontairement si elle ne correspond pas (`engine-strict`).
 
 ## Démarrage rapide
+
+### Option A — Dev container (recommandé)
+
+```bash
+git clone https://github.com/Vinylek/taskflow.git
+cd taskflow
+cp .env.example .env    # puis éditer .env (SECRET_KEY, POSTGRES_PASSWORD…)
+code .
+```
+
+Dans VS Code : **« Reopen in Container »** (ou `F1` → _Dev Containers: Reopen in Container_). Au premier lancement, VS Code :
+
+1. démarre les services `app` (Node 24), `db` (PostgreSQL) et `cache` (Redis) via Docker Compose ;
+2. ouvre le projet **dans** le conteneur `app` ;
+3. exécute `npm ci` (dépendances + hooks Git) ;
+4. installe les extensions ESLint, Prettier, EditorConfig et active le formatage à l'enregistrement.
+
+Il ne reste qu'à lancer, dans le terminal intégré :
+
+```bash
+npm run dev
+```
+
+Le port 3000 est redirigé automatiquement vers <http://localhost:3000>.
+
+> Dans le conteneur, PostgreSQL et Redis sont joints par leur nom de service (`db`, `cache`) : `POSTGRES_HOST` et `REDIS_URL` sont surchargés par [`.devcontainer/compose.dev.yaml`](.devcontainer/compose.dev.yaml), inutile de modifier `.env`. Ne pas lancer `npm run infra:*` depuis le conteneur : l'infra est déjà gérée par le dev container.
+
+Sans VS Code, le [CLI Dev Containers](https://github.com/devcontainers/cli) fonctionne aussi :
+
+```bash
+npx @devcontainers/cli up --workspace-folder .
+npx @devcontainers/cli exec --workspace-folder . npm run dev
+```
+
+### Option B — Installation locale
 
 ```bash
 git clone https://github.com/Vinylek/taskflow.git
@@ -125,6 +166,9 @@ curl -X POST http://localhost:3000/api/tasks \
 
 ```
 taskflow/
+├── .devcontainer/
+│   ├── devcontainer.json # Dev container (VS Code / CLI)
+│   └── compose.dev.yaml  # Service "app" ajouté à l'infra pour le dev container
 ├── db/init/              # Scripts SQL exécutés au 1er démarrage de PostgreSQL
 ├── public/               # Front-end statique (HTML, CSS, JS)
 ├── src/
@@ -135,6 +179,7 @@ taskflow/
 ├── eslint.config.js      # Règles ESLint
 ├── .prettierrc.json      # Style Prettier
 ├── .editorconfig         # Conventions d'éditeur
+├── .gitattributes        # Fins de ligne LF forcées dans Git
 ├── .nvmrc                # Version de Node
 └── .husky/pre-commit     # Hook Git : lint + format avant commit
 ```
@@ -154,10 +199,12 @@ Voir [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Dépannage
 
-| Problème                                       | Solution                                                                |
-| ---------------------------------------------- | ----------------------------------------------------------------------- |
-| `Variable d'environnement manquante : …`       | Créer/compléter `.env` à partir de `.env.example`                       |
-| `npm ERR! code EBADENGINE`                     | Mauvaise version de Node : `nvm install && nvm use`                     |
-| `port is already allocated` (5432/6379)        | Un service local utilise le port : changer `POSTGRES_PORT`/`REDIS_PORT` |
-| Modifs de `db/init/*.sql` non prises en compte | Les scripts ne tournent que sur un volume vide : `npm run db:reset`     |
-| Le hook pre-commit ne se lance pas             | Réinstaller les hooks : `npm install` (script `prepare`)                |
+| Problème                                                | Solution                                                                           |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `Variable d'environnement manquante : …`                | Créer/compléter `.env` à partir de `.env.example`                                  |
+| `npm ERR! code EBADENGINE`                              | Mauvaise version de Node : `nvm install && nvm use`                                |
+| `port is already allocated` (5432/6379)                 | Un service local utilise le port : changer `POSTGRES_PORT`/`REDIS_PORT`            |
+| Modifs de `db/init/*.sql` non prises en compte          | Les scripts ne tournent que sur un volume vide : `npm run db:reset`                |
+| Le hook pre-commit ne se lance pas                      | Réinstaller les hooks : `npm install` (script `prepare`)                           |
+| Dev container : `.env` introuvable / variable manquante | Créer `.env` à la racine **avant** d'ouvrir le conteneur, puis _Rebuild Container_ |
+| Dev container : modifs de `devcontainer.json` ignorées  | `F1` → _Dev Containers: Rebuild Container_                                         |

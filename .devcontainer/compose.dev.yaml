@@ -1,0 +1,24 @@
+# Surcharge Compose utilisée uniquement par le dev container.
+# Les chemins sont relatifs au premier fichier Compose (racine du projet).
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/javascript-node:24
+    command: sleep infinity
+    volumes:
+      - .:/workspaces/taskflow:cached
+      # node_modules isolé de l'hôte (binaires compilés pour Linux, meilleures perfs)
+      - node_modules:/workspaces/taskflow/node_modules
+    environment:
+      # Dans le réseau Docker, les services se joignent par leur nom (et non localhost).
+      # Ces valeurs priment sur celles du fichier .env.
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://cache:6379
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+
+volumes:
+  node_modules:
