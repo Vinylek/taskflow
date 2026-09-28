@@ -1,0 +1,42 @@
+// Dev container TaskFlow : Node 24 + PostgreSQL + Redis, prêt à l'emploi.
+// Prérequis : Docker + VS Code avec l'extension "Dev Containers", et un fichier .env
+// (cp .env.example .env) à la racine du projet.
+{
+  "name": "TaskFlow",
+
+  // Réutilise l'infra du projet (db + cache) et y ajoute le service de dev "app"
+  "dockerComposeFile": ["../compose.yaml", "compose.dev.yaml"],
+  "service": "app",
+  "runServices": ["app", "db", "cache"],
+  "workspaceFolder": "/workspaces/taskflow",
+  "shutdownAction": "stopCompose",
+
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": { "label": "TaskFlow", "onAutoForward": "notify" }
+  },
+
+  // node_modules est un volume Docker (créé en root) : on le rend au user "node" puis on installe
+  "postCreateCommand": "sudo chown node:node node_modules && npm ci",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "editorconfig.editorconfig"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" }
+      }
+    }
+  },
+
+  "remoteUser": "node"
+}
