@@ -4,12 +4,13 @@
   "description": "Gestionnaire de tâches collaboratif",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node --env-file-if-exists=.env server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "dev": "node --env-file-if-exists=.env --watch server.js"
   },
   "dependencies": {
     "express": "^4.21.0"
