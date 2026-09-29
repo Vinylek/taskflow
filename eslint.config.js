@@ -3,11 +3,11 @@ const globals = require('globals');
 const prettier = require('eslint-config-prettier');
 
 module.exports = [
-  { ignores: ['node_modules/', 'coverage/', 'dist/'] },
+  { ignores: ['node_modules/', 'coverage/', 'dist/', '.vscode'] },
   js.configs.recommended,
   {
     // Backend Node.js (CommonJS)
-    files: ['server.js', 'src/**/*.js', 'eslint.config.js'],
+    files: ['server.js', 'src/**/*.js', 'test/**/*.js', 'eslint.config.js', 'commitlint.config.js'],
     languageOptions: { sourceType: 'commonjs', globals: globals.node },
   },
   {

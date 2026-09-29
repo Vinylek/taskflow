@@ -11,6 +11,8 @@
     "format:check": "prettier --check .",
     "prepare": "husky",
     "dev": "node --env-file-if-exists=.env --watch server.js",
+    "test": "node --env-file-if-exists=.env --test",
+    "test:coverage": "node --env-file-if-exists=.env --test --experimental-test-coverage",
     "infra:up": "docker compose up -d --wait",
     "infra:down": "docker compose down",
     "infra:logs": "docker compose logs -f",
@@ -24,13 +26,16 @@
     "node": ">=24"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
     "@eslint/js": "^10.0.1",
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.12.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
-    "prettier": "^3.9.9"
+    "prettier": "^3.9.9",
+    "supertest": "^7.3.0"
   },
   "lint-staged": {
     "*.js": [
