@@ -4,6 +4,7 @@
 // ──────────────────────────────────────────────
 
 function required(name) {
+  // eslint-disable-next-line security/detect-object-injection -- name est une constante du code, jamais une entrée utilisateur
   const value = process.env[name];
   if (!value) {
     throw new Error(`Variable d'environnement manquante : ${name} (voir .env.example)`);

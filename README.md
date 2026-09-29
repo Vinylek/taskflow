@@ -21,6 +21,7 @@ Gestionnaire de tâches collaboratif — API REST Express + front-end vanilla JS
 - [Structure du projet](#structure-du-projet)
 - [Qualité de code](#qualité-de-code)
 - [Intégration continue](#intégration-continue)
+- [Sécurité](#sécurité)
 - [Contribuer](#contribuer)
 - [Dépannage](#dépannage)
 
@@ -228,9 +229,16 @@ Extensions VS Code recommandées (proposées à l'ouverture du projet) : ESLint,
 
 Le workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) tourne à chaque Pull Request et à chaque push sur `main` :
 
-1. **Lint & format** : ESLint + Prettier.
+1. **Lint, format & SAST** : ESLint (avec `eslint-plugin-security`, 0 warning toléré) + Prettier.
 2. **Tests & coverage** : `npm run test:ci` ; les rapports (JUnit, lcov) sont conservés 90 jours en artifact `test-reports`.
-3. **Docker** (si 1 et 2 passent) : build de l'image, smoke test sur `/health`, puis publication sur `ghcr.io` (uniquement sur `main`).
+3. **Audit des dépendances** : `npm audit --audit-level=high` et vérification des signatures.
+4. **Détection de secrets** : gitleaks sur tout l'historique.
+5. **DAST** : vérification des en-têtes de sécurité puis scan actif OWASP ZAP ; une issue est ouverte en cas d'alerte.
+6. **Docker** (si tout le reste passe) : build de l'image, smoke test sur `/health`, puis publication sur `ghcr.io` (uniquement sur `main`).
+
+## Sécurité
+
+Voir [SECURITY.md](SECURITY.md) : contrôles automatisés, audit réalisé et risques connus.
 
 ## Contribuer
 

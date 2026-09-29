@@ -1,8 +1,6 @@
 // ──────────────────────────────────────────────
 // TaskFlow — Front-end JavaScript
 // ──────────────────────────────────────────────
-/* exported advanceStatus, deleteTask */ // appelées via onclick dans le HTML généré
-
 const tasksContainer = document.getElementById('tasks-container');
 const taskForm = document.getElementById('task-form');
 const filterButtons = document.querySelectorAll('.filter-btn');
@@ -24,46 +22,73 @@ async function loadTasks() {
     const tasks = await response.json();
     renderTasks(tasks);
   } catch (err) {
-    tasksContainer.innerHTML = `<div class="error-message">Impossible de charger les tâches : ${err.message}</div>`;
+    showMessage('error-message', `Impossible de charger les tâches : ${err.message}`);
   }
 }
 
 // ── Rendu des tâches ───────────────────────────
-// ⚠️ Utilise innerHTML — vulnérable au XSS stocké (pour TP sécurité)
+// Construction du DOM avec createElement + textContent : les données
+// utilisateur sont toujours affichées comme du texte, jamais interprétées
+// comme du HTML (protection contre le XSS stocké).
+
+const STATUSES = ['todo', 'in-progress', 'done'];
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function showMessage(className, text) {
+  tasksContainer.replaceChildren(el('div', className, text));
+}
 
 function renderTasks(tasks) {
   if (tasks.length === 0) {
-    tasksContainer.innerHTML = '<div class="empty-message">Aucune tâche trouvée</div>';
+    showMessage('empty-message', 'Aucune tâche trouvée');
     return;
   }
 
-  tasksContainer.innerHTML = tasks
-    .map(
-      (task) => `
-    <div class="task-card" data-status="${task.status}">
-      <h3>${task.title}</h3>
-      <p>${task.description || 'Pas de description'}</p>
-      <div class="task-meta">
-        <span>${task.owner}</span>
-        <span class="task-status ${task.status}">${formatStatus(task.status)}</span>
-      </div>
-      <div class="task-actions">
-        ${task.status !== 'done' ? `<button onclick="advanceStatus('${task.id}', '${task.status}')">▶ Avancer</button>` : ''}
-        <button class="delete-btn" onclick="deleteTask('${task.id}')">🗑 Supprimer</button>
-      </div>
-    </div>
-  `,
-    )
-    .join('');
+  tasksContainer.replaceChildren(...tasks.map(renderTask));
+}
+
+function renderTask(task) {
+  const card = el('div', 'task-card');
+  card.dataset.status = task.status;
+
+  const status = el('span', 'task-status', formatStatus(task.status));
+  if (STATUSES.includes(task.status)) status.classList.add(task.status);
+
+  const meta = el('div', 'task-meta');
+  meta.append(el('span', null, task.owner), status);
+
+  const actions = el('div', 'task-actions');
+  if (task.status !== 'done') {
+    const advanceBtn = el('button', null, '▶ Avancer');
+    advanceBtn.addEventListener('click', () => advanceStatus(task.id, task.status));
+    actions.append(advanceBtn);
+  }
+  const deleteBtn = el('button', 'delete-btn', '🗑 Supprimer');
+  deleteBtn.addEventListener('click', () => deleteTask(task.id));
+  actions.append(deleteBtn);
+
+  card.append(
+    el('h3', null, task.title),
+    el('p', null, task.description || 'Pas de description'),
+    meta,
+    actions,
+  );
+  return card;
 }
 
 function formatStatus(status) {
-  const labels = {
-    todo: 'À faire',
-    'in-progress': 'En cours',
-    done: 'Terminée',
-  };
-  return labels[status] || status;
+  const labels = new Map([
+    ['todo', 'À faire'],
+    ['in-progress', 'En cours'],
+    ['done', 'Terminée'],
+  ]);
+  return labels.get(status) || status;
 }
 
 // ── Création d'une tâche ───────────────────────
