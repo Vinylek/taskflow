@@ -2,6 +2,7 @@ const express = require('express');
 const config = require('./src/config');
 
 const app = express();
+const inutile = 42;
 
 app.use(express.json());
 app.use(express.static('public'));
