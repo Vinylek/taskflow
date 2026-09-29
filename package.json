@@ -13,6 +13,7 @@
     "dev": "node --env-file-if-exists=.env --watch server.js",
     "test": "node --env-file-if-exists=.env --test",
     "test:coverage": "node --env-file-if-exists=.env --test --experimental-test-coverage",
+    "test:ci": "node -e \"require('fs').mkdirSync('coverage',{recursive:true})\" && node --test --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=coverage/junit.xml --test-reporter=lcov --test-reporter-destination=coverage/lcov.info",
     "infra:up": "docker compose up -d --wait",
     "infra:down": "docker compose down",
     "infra:logs": "docker compose logs -f",

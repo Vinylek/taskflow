@@ -1,0 +1,58 @@
+# Pipeline d'intégration continue TaskFlow
+# Déclenché à chaque push sur main et à chaque Pull Request vers main.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Un nouveau push sur la même branche annule le run précédent encore en cours
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Principe du moindre privilège : le pipeline ne fait que lire le dépôt
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint & format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+
+  test:
+    name: Tests & coverage
+    runs-on: ubuntu-latest
+    env:
+      # Valeurs factices : la config exige ces variables, mais les tests n'utilisent pas encore la BDD
+      NODE_ENV: test
+      SECRET_KEY: ci-secret-not-for-prod
+      POSTGRES_USER: taskflow
+      POSTGRES_PASSWORD: taskflow
+      POSTGRES_DB: taskflow
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run test:ci
+      - name: Sauvegarder les rapports de tests et de coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: coverage/
+          retention-days: 90
