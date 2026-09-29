@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   lint:
-    name: Lint & format
+    name: Lint, format & SAST
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -28,6 +28,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # ESLint + eslint-plugin-security (SAST), 0 warning toléré
       - run: npm run lint
       - run: npm run format:check
 
@@ -57,10 +58,93 @@ jobs:
           path: coverage/
           retention-days: 90
 
+  audit:
+    name: Audit des dépendances
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Supply chain : échec si une dépendance a une vulnérabilité high ou critical
+      - run: npm audit --audit-level=high
+      # Vérifie que les paquets téléchargés sont bien signés par le registre npm
+      - run: npm audit signatures
+      - name: Rapport d'audit (JSON)
+        if: always()
+        run: npm audit --json > npm-audit.json || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: npm-audit
+          path: npm-audit.json
+          retention-days: 90
+
+  secrets:
+    name: Détection de secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # tout l'historique : un secret supprimé reste dans les anciens commits
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dast:
+    name: DAST (OWASP ZAP)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write # ZAP ouvre une issue GitHub avec les alertes détectées
+    env:
+      SECRET_KEY: ci-secret-not-for-prod
+      POSTGRES_USER: taskflow
+      POSTGRES_PASSWORD: taskflow
+      POSTGRES_DB: taskflow
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Démarrage de l'application
+        run: |
+          node server.js &
+          for i in $(seq 1 10); do
+            curl -fs http://localhost:3000/health && exit 0
+            sleep 1
+          done
+          exit 1
+      - name: Vérification des en-têtes de sécurité
+        run: |
+          headers=$(curl -sI http://localhost:3000/)
+          echo "$headers"
+          for h in content-security-policy x-content-type-options x-frame-options; do
+            echo "$headers" | grep -qi "^$h:" || { echo "::error::En-tête $h absent"; exit 1; }
+          done
+          if echo "$headers" | grep -qi "^x-powered-by:"; then
+            echo "::error::X-Powered-By ne doit pas être exposé"; exit 1
+          fi
+      # Scan actif : ZAP injecte des payloads (XSS, injections…) dans chaque paramètre.
+      # /search?q= est ciblé car il n'est lié nulle part (le spider ne le trouverait pas).
+      - name: Scan OWASP ZAP
+        uses: zaproxy/action-full-scan@v0.12.0
+        with:
+          target: http://localhost:3000/search?q=test
+          cmd_options: -m 1
+          fail_action: true
+          allow_issue_writing: true
+          issue_title: 'Rapport de sécurité OWASP ZAP'
+          artifact_name: zap-report
+
   docker:
     name: Build & publication de l'image Docker
-    # L'image n'est construite que si le lint et les tests sont passés
-    needs: [lint, test]
+    # L'image n'est construite que si toutes les vérifications (qualité + sécurité) sont passées
+    needs: [lint, test, audit, secrets, dast]
     runs-on: ubuntu-latest
     permissions:
       contents: read
