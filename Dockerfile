@@ -4,7 +4,7 @@
 # ──────────────────────────────────────────────
 
 # ---- Étape 1 : base commune ----
-FROM node:24-alpine AS base
+FROM node:26-alpine AS base
 WORKDIR /app
 COPY package.json package-lock.json ./
 
@@ -22,7 +22,7 @@ RUN SECRET_KEY=test POSTGRES_USER=test POSTGRES_PASSWORD=test POSTGRES_DB=test \
     sh -c 'npm run lint && npm test'
 
 # ---- Étape 4 : image finale, minimale ----
-FROM node:24-alpine AS runtime
+FROM node:26-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=deps --chown=node:node /app/node_modules ./node_modules
