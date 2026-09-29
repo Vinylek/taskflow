@@ -30,7 +30,7 @@ let tasks = [
     id: '3',
     title: 'Écrire les tests unitaires',
     description: 'Couvrir les services avec Jest',
-    status: 'todo',
+    status: 'done',
     owner: 'alice',
     createdAt: '2026-09-03T09:00:00Z',
   },
@@ -83,7 +83,7 @@ app.post('/api/tasks', (req, res) => {
     id: String(nextId++),
     title: title,
     description: description || '',
-    status: 'todo',
+    status: 'done',
     owner: owner || 'anonymous',
     createdAt: new Date().toISOString(),
   };
