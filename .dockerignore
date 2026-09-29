@@ -1,0 +1,14 @@
+# Tout ce qui ne doit pas être envoyé au daemon Docker lors du build
+node_modules
+coverage
+.git
+.github
+.husky
+.devcontainer
+.vscode
+.env
+.env.*
+!.env.example
+*.log
+Dockerfile
+.dockerignore
