@@ -1,5 +1,6 @@
 const express = require('express');
 const config = require('./src/config');
+const log = require('./lib/logger');
 
 const app = express();
 
@@ -147,7 +148,7 @@ app.get('/search', (req, res) => {
 // ──────────────────────────────────────────────
 if (require.main === module) {
   app.listen(config.port, () => {
-    console.log(`TaskFlow démarré sur http://localhost:${config.port} (${config.env})`);
+    log(`TaskFlow démarré sur http://localhost:${config.port} (${config.env})`);
   });
 }
 

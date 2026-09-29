@@ -7,7 +7,14 @@ module.exports = [
   js.configs.recommended,
   {
     // Backend Node.js (CommonJS)
-    files: ['server.js', 'src/**/*.js', 'test/**/*.js', 'eslint.config.js', 'commitlint.config.js'],
+    files: [
+      'server.js',
+      'src/**/*.js',
+      'lib/**/*.js',
+      'test/**/*.js',
+      'eslint.config.js',
+      'commitlint.config.js',
+    ],
     languageOptions: { sourceType: 'commonjs', globals: globals.node },
   },
   {
