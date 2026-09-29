@@ -17,8 +17,10 @@ Gestionnaire de tâches collaboratif — API REST Express + front-end vanilla JS
 - [Infrastructure (Docker Compose)](#infrastructure-docker-compose)
 - [Scripts npm](#scripts-npm)
 - [API](#api)
+- [Image Docker](#image-docker)
 - [Structure du projet](#structure-du-projet)
 - [Qualité de code](#qualité-de-code)
+- [Intégration continue](#intégration-continue)
 - [Contribuer](#contribuer)
 - [Dépannage](#dépannage)
 
@@ -127,24 +129,28 @@ Pour rejouer les scripts après une modification du schéma : `npm run db:reset`
 
 ## Scripts npm
 
-| Commande               | Description                                          |
-| ---------------------- | ---------------------------------------------------- |
-| `npm start`            | Lance l'application                                  |
-| `npm run dev`          | Lance l'application en mode watch (redémarrage auto) |
-| `npm run lint`         | Analyse le code avec ESLint                          |
-| `npm run lint:fix`     | Corrige automatiquement les problèmes ESLint         |
-| `npm run format`       | Formate le code avec Prettier                        |
-| `npm run format:check` | Vérifie le formatage sans modifier (CI)              |
-| `npm run infra:up`     | Démarre PostgreSQL + Redis                           |
-| `npm run infra:down`   | Arrête les conteneurs (données conservées)           |
-| `npm run infra:logs`   | Affiche les logs des conteneurs                      |
-| `npm run db:psql`      | Ouvre un shell `psql` dans la base                   |
-| `npm run db:reset`     | Supprime les volumes et réinitialise la base         |
+| Commande                | Description                                          |
+| ----------------------- | ---------------------------------------------------- |
+| `npm start`             | Lance l'application                                  |
+| `npm run dev`           | Lance l'application en mode watch (redémarrage auto) |
+| `npm run lint`          | Analyse le code avec ESLint                          |
+| `npm run lint:fix`      | Corrige automatiquement les problèmes ESLint         |
+| `npm run format`        | Formate le code avec Prettier                        |
+| `npm run format:check`  | Vérifie le formatage sans modifier (CI)              |
+| `npm test`              | Lance les tests (`node:test` + supertest)            |
+| `npm run test:coverage` | Lance les tests avec le rapport de couverture        |
+| `npm run test:ci`       | Tests + rapports JUnit et lcov dans `coverage/` (CI) |
+| `npm run infra:up`      | Démarre PostgreSQL + Redis                           |
+| `npm run infra:down`    | Arrête les conteneurs (données conservées)           |
+| `npm run infra:logs`    | Affiche les logs des conteneurs                      |
+| `npm run db:psql`       | Ouvre un shell `psql` dans la base                   |
+| `npm run db:reset`      | Supprime les volumes et réinitialise la base         |
 
 ## API
 
 | Méthode  | Route            | Description                                    |
 | -------- | ---------------- | ---------------------------------------------- |
+| `GET`    | `/health`        | Sonde de santé (`{"status":"ok"}`)             |
 | `GET`    | `/api/tasks`     | Liste les tâches (filtres : `?status=`, `?q=`) |
 | `GET`    | `/api/tasks/:id` | Détail d'une tâche                             |
 | `POST`   | `/api/tasks`     | Crée une tâche (`title` obligatoire)           |
@@ -162,6 +168,25 @@ curl -X POST http://localhost:3000/api/tasks \
 
 > ℹ️ Les tâches sont pour l'instant stockées **en mémoire** ; la bascule vers PostgreSQL est prévue.
 
+## Image Docker
+
+Le `Dockerfile` est **multi-stage** :
+
+| Étape     | Contenu                                                             |
+| --------- | ------------------------------------------------------------------- |
+| `base`    | `node:24-alpine` + `package.json` / `package-lock.json`             |
+| `deps`    | Dépendances de production uniquement (`npm ci --omit=dev`)          |
+| `test`    | Toutes les dépendances, puis lint + tests (build cassé si échec)    |
+| `runtime` | Image finale : code + dépendances de prod, user `node`, healthcheck |
+
+```bash
+docker build --target test -t taskflow:test .   # vérifier lint + tests dans Docker
+docker build -t taskflow .                      # image de production
+docker run --rm -p 3000:3000 --env-file .env taskflow
+```
+
+L'image est publiée automatiquement par la CI sur `ghcr.io` à chaque merge sur `main`.
+
 ## Structure du projet
 
 ```
@@ -173,6 +198,9 @@ taskflow/
 ├── public/               # Front-end statique (HTML, CSS, JS)
 ├── src/
 │   └── config.js         # Configuration centralisée (variables d'environnement)
+├── test/                 # Tests d'API (node:test + supertest)
+├── .github/workflows/    # Pipeline CI GitHub Actions
+├── Dockerfile            # Image de production multi-stage
 ├── server.js             # Point d'entrée Express
 ├── compose.yaml          # Infrastructure locale (PostgreSQL + Redis)
 ├── .env.example          # Modèle de configuration
@@ -181,7 +209,8 @@ taskflow/
 ├── .editorconfig         # Conventions d'éditeur
 ├── .gitattributes        # Fins de ligne LF forcées dans Git
 ├── .nvmrc                # Version de Node
-└── .husky/pre-commit     # Hook Git : lint + format avant commit
+├── commitlint.config.js  # Règles des messages de commit
+└── .husky/               # Hooks Git : pre-commit, commit-msg, pre-push
 ```
 
 ## Qualité de code
@@ -190,8 +219,18 @@ taskflow/
 - **Prettier** garantit un formatage uniforme.
 - **EditorConfig** harmonise indentation et fins de ligne entre éditeurs.
 - **Husky + lint-staged** exécutent ESLint et Prettier sur les fichiers modifiés **à chaque commit** ; un commit non conforme est bloqué.
+- **commitlint** (hook `commit-msg`) refuse les messages qui ne respectent pas [Conventional Commits](https://www.conventionalcommits.org/fr/).
+- Le hook **`pre-push`** lance `npm test` : impossible de pousser du code dont les tests échouent.
 
 Extensions VS Code recommandées (proposées à l'ouverture du projet) : ESLint, Prettier, EditorConfig.
+
+## Intégration continue
+
+Le workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) tourne à chaque Pull Request et à chaque push sur `main` :
+
+1. **Lint & format** : ESLint + Prettier.
+2. **Tests & coverage** : `npm run test:ci` ; les rapports (JUnit, lcov) sont conservés 90 jours en artifact `test-reports`.
+3. **Docker** (si 1 et 2 passent) : build de l'image, smoke test sur `/health`, puis publication sur `ghcr.io` (uniquement sur `main`).
 
 ## Contribuer
 
