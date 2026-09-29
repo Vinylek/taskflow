@@ -38,6 +38,11 @@ let tasks = [
 
 let nextId = 4;
 
+// GET /health — sonde de santé (utilisée par le HEALTHCHECK Docker)
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 app.get('/api/tasks', (req, res) => {
   const { status, q } = req.query;
 

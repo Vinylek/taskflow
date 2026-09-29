@@ -3,6 +3,12 @@ const assert = require('node:assert/strict');
 const request = require('supertest');
 const app = require('../server');
 
+test('GET /health renvoie ok', async () => {
+  const res = await request(app).get('/health');
+  assert.equal(res.status, 200);
+  assert.deepEqual(res.body, { status: 'ok' });
+});
+
 test('GET /api/tasks renvoie la liste des tâches', async () => {
   const res = await request(app).get('/api/tasks');
   assert.equal(res.status, 200);
