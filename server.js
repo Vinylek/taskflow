@@ -140,6 +140,10 @@ app.get('/search', (req, res) => {
 // ──────────────────────────────────────────────
 // Démarrage du serveur
 // ──────────────────────────────────────────────
-app.listen(config.port, () => {
-  console.log(`TaskFlow démarré sur http://localhost:${config.port} (${config.env})`);
-});
+if (require.main === module) {
+  app.listen(config.port, () => {
+    console.log(`TaskFlow démarré sur http://localhost:${config.port} (${config.env})`);
+  });
+}
+
+module.exports = app;
